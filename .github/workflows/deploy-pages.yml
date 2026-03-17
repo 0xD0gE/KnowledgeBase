@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 # 前端程式碼更新或索引更新後，重新部署 GitHub Pages
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - "web/**"
       - "data/**"
@@ -28,6 +28,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     # 若由 workflow_run 觸發，只在成功時執行
     if: >
       github.event_name != 'workflow_run' ||

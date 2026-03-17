@@ -3,7 +3,7 @@ name: Build Knowledge Index
 # 知識庫文件更新時，自動重新建立搜尋索引
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - "docs/**/*.md"
   workflow_dispatch:  # 支援手動觸發
@@ -11,6 +11,8 @@ on:
 jobs:
   build-index:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     permissions:
       contents: write  # 需要 write 才能 commit 回 repo
 

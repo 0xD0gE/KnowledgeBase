@@ -9,6 +9,8 @@ jobs:
   # ── 前置檢查：確認是否需要觸發 LLM ────────────────────────
   check:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     outputs:
       should-run: ${{ steps.gate.outputs.result }}
     steps:
@@ -33,6 +35,8 @@ jobs:
     needs: check
     if: needs.check.outputs.should-run == 'true'
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     permissions:
       issues: write    # 需要 write 才能留言和加 label
       contents: read   # 需要 read 才能 checkout
