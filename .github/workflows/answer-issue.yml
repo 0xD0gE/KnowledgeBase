@@ -1,0 +1,90 @@
+name: Auto Answer Issue
+
+# Issue 建立或加上特定 label 時，自動觸發 LLM 回答
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  # ── 前置檢查：確認是否需要觸發 LLM ────────────────────────
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.gate.outputs.result }}
+    steps:
+      - name: Check Trigger Condition
+        id: gate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = context.payload.issue.labels.map(l => l.name);
+            const hasQuestion = labels.includes('auto-question') ||
+                                labels.includes('needs-answer');
+            const alreadyProcessed = labels.includes('answered') ||
+                                     labels.includes('bot-processing') ||
+                                     labels.includes('knowledge-gap');
+            const shouldRun = hasQuestion && !alreadyProcessed;
+            console.log(`Labels: ${labels.join(', ')}`);
+            console.log(`Should run: ${shouldRun}`);
+            return shouldRun;
+
+  # ── LLM 自動回答 ──────────────────────────────────────────
+  answer:
+    needs: check
+    if: needs.check.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write    # 需要 write 才能留言和加 label
+      contents: read   # 需要 read 才能 checkout
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: "scripts/requirements.txt"
+
+      - name: Install Dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Add Processing Label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['bot-processing']
+            }).catch(() => {});  // label 已存在時忽略
+
+      - name: Run LLM Answer Script
+        id: llm-answer
+        run: python scripts/answer_issue.py
+        env:
+          GITHUB_TOKEN:      ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
+          # LLM_PROVIDER 從 Repository Variables 讀取（預設 anthropic）
+          LLM_PROVIDER:      ${{ vars.LLM_PROVIDER || 'anthropic' }}
+          ISSUE_NUMBER:      ${{ github.event.issue.number }}
+          ISSUE_TITLE:       ${{ github.event.issue.title }}
+          ISSUE_BODY:        ${{ github.event.issue.body }}
+          REPO_OWNER:        ${{ github.repository_owner }}
+          REPO_NAME:         ${{ github.event.repository.name }}
+
+      - name: Remove Processing Label
+        if: always()  # 無論成功或失敗都移除
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              name: 'bot-processing'
+            }).catch(() => {});  // label 不存在時忽略

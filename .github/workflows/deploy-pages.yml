@@ -1,0 +1,71 @@
+name: Deploy to GitHub Pages
+
+# 前端程式碼更新或索引更新後，重新部署 GitHub Pages
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "data/**"
+  workflow_run:
+    workflows: ["Build Knowledge Index"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時只允許一個部署，若有新的觸發會取消舊的
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    # 若由 workflow_run 觸發，只在成功時執行
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare Site Content
+        run: |
+          mkdir -p _site
+          # 複製前端文件
+          cp -r web/* _site/
+
+          # 複製搜尋索引
+          mkdir -p _site/data
+          if [ -d data ]; then
+            cp -r data/* _site/data/ 2>/dev/null || true
+          fi
+
+          # 注入 Repo 設定到 config.js（替換佔位符）
+          OWNER="${GITHUB_REPOSITORY_OWNER}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+          sed -i "s|__REPO_OWNER__|${OWNER}|g" _site/js/config.js
+          sed -i "s|__REPO_NAME__|${REPO}|g" _site/js/config.js
+
+          echo "Site content prepared:"
+          find _site -type f | head -30
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "_site"
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

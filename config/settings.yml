@@ -1,0 +1,58 @@
+# config/settings.yml
+# 知識庫系統設定（非機密資訊，可公開）
+# 機密資訊（API Keys）請設定在 GitHub Secrets，不要放在此文件中
+
+# ── LLM 設定 ──────────────────────────────────────────────
+llm:
+  # 主要使用的 LLM 提供商: anthropic | openai
+  # 此值可被 Repository Variable LLM_PROVIDER 覆寫（優先度更高）
+  provider: anthropic
+
+  anthropic:
+    # 模型選擇：
+    # - claude-opus-4-6（最強，適合複雜問題）
+    # - claude-haiku-4-5-20251001（最快最便宜，適合高流量）
+    model: claude-opus-4-6
+    max_tokens: 2048
+    temperature: 0.3   # 較低溫度確保回答一致性
+
+  openai:
+    # 模型選擇：
+    # - gpt-4o（最強）
+    # - gpt-4o-mini（較便宜，適合高流量）
+    model: gpt-4o
+    max_tokens: 2048
+    temperature: 0.3
+
+# ── 知識庫設定 ────────────────────────────────────────────
+knowledge:
+  docs_dir: docs
+  # 每次 Issue 回答傳給 LLM 的最多文件數
+  max_context_docs: 5
+  # 每篇文件傳給 LLM 的最多字元數（避免 context 過長）
+  max_doc_chars: 3000
+
+# ── 搜尋設定 ──────────────────────────────────────────────
+search:
+  min_query_length: 2
+  max_results: 8
+  # 本地索引分數低於此值時，額外呼叫 GitHub Search API
+  local_score_threshold: 2
+
+# ── GitHub Issues 設定 ────────────────────────────────────
+issues:
+  # 自動建立 Issue 時使用的 Labels
+  auto_labels:
+    - auto-question
+    - needs-answer
+  # AI 回答成功後加上的 Label
+  answered_label: answered
+  # AI 找不到答案時加上的 Label
+  gap_label: knowledge-gap
+  # AI 正在處理時的暫時 Label
+  processing_label: bot-processing
+
+# ── 前端 UI 設定 ──────────────────────────────────────────
+ui:
+  language: zh-TW
+  max_recent_answered: 5

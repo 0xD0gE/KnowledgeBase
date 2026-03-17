@@ -1,0 +1,12 @@
+{
+  "files": [
+    "docs/faq/general-faq.md",
+    "docs/getting-started/how-to-contribute.md",
+    "docs/getting-started/overview.md",
+    "docs/README.md",
+    "docs/technical/github-actions-guide.md",
+    "docs/technical/llm-integration.md"
+  ],
+  "total": 6,
+  "updated_at": "2026-03-17T17:09:38.546479+00:00"
+}

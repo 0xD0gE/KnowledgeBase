@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.env
+
+# 本地測試
+*.local.json
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# data/ 由 GitHub Actions 自動生成並 commit
+# 若要在本地測試，可執行 python scripts/build_index.py 手動生成

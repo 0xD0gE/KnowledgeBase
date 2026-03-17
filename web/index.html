@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>組織知識庫</title>
+  <meta name="description" content="組織知識庫 - 搜尋技術文件與常見問題解答" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <header class="site-header">
+    <div class="header-inner">
+      <span class="site-title">📚 組織知識庫</span>
+      <nav class="header-links">
+        <a id="github-docs-link" href="#" target="_blank" rel="noopener">文件</a>
+        <a id="github-issues-link" href="#" target="_blank" rel="noopener">Issues Q&amp;A</a>
+        <a id="github-repo-link" href="#" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ── 主體 ───────────────────────────────────────────── -->
+  <main class="page-wrap">
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1>搜尋知識庫</h1>
+      <p>輸入問題或關鍵字，找到技術文件、FAQ 與過去的解答。</p>
+    </section>
+
+    <!-- 搜尋框 -->
+    <div class="search-wrap">
+      <input
+        id="search-input"
+        class="search-input"
+        type="search"
+        placeholder="搜尋問題、關鍵字、技術名詞…"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <!-- 搜尋時顯示 spinner，否則顯示搜尋圖示 -->
+      <span id="search-spinner" class="search-spinner"></span>
+      <span class="search-icon" aria-hidden="true">🔍</span>
+    </div>
+    <p class="search-hint">按 Enter 立即搜尋</p>
+
+    <!-- Rate Limit 警告 -->
+    <div id="rate-limit-warn">
+      ⚠️ GitHub Search API 請求次數已達上限，目前僅顯示本地索引結果。稍後再試可獲得更完整的搜尋結果。
+    </div>
+
+    <!-- 搜尋結果 -->
+    <section id="results-section" style="display:none;">
+      <p class="results-meta" id="results-count"></p>
+      <ul class="results-list" id="results-list"></ul>
+    </section>
+
+    <!-- 找不到答案 -->
+    <div id="no-result-box" style="display:none;">
+      <div class="no-result-icon">🤔</div>
+      <h3>找不到相關答案</h3>
+      <p>
+        知識庫中目前沒有符合的文件。<br />
+        點擊下方按鈕，AI 會自動讀取知識庫並嘗試回答你的問題。
+      </p>
+      <button id="create-issue-btn" class="btn btn-primary">
+        💬 建立 Issue，讓 AI 來回答
+      </button>
+    </div>
+
+    <!-- Issue 已建立成功 -->
+    <div id="issue-created-box" style="display:none;">
+      <strong>✅ Issue 已建立，AI 正在處理中（約 5 分鐘）</strong>
+      <a id="issue-link" href="#" target="_blank" rel="noopener">前往查看 Issue →</a>
+      <p style="margin-top:8px; font-size:.8rem; color:#444;">
+        AI 回答完成後會在 Issue 留言。<br />
+        若答案不正確，歡迎在 Issue 中補充說明，維運者會更新知識庫。
+      </p>
+    </div>
+
+    <!-- 最近已回答問題 -->
+    <section id="recent-section" style="display:none;">
+      <p class="section-title">最近已回答的問題</p>
+      <ul class="recent-list" id="recent-list"></ul>
+    </section>
+
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <p>由 GitHub + AI 驅動的知識庫 &nbsp;·&nbsp;
+       文件以 Markdown 儲存於 Git &nbsp;·&nbsp;
+       AI 回答由 Claude / OpenAI 提供</p>
+  </footer>
+
+  <!-- ── PAT Modal ───────────────────────────────────────── -->
+  <div id="pat-modal" role="dialog" aria-modal="true" aria-labelledby="pat-modal-title">
+    <div class="modal-box">
+      <h2 id="pat-modal-title">輸入 GitHub Personal Access Token</h2>
+      <p class="modal-desc">
+        建立 Issue 需要你的 GitHub PAT（Classic Token）。<br />
+        Token 僅需 <strong>public_repo</strong> scope，
+        且只會存在瀏覽器 sessionStorage（關閉分頁即清除）。<br />
+        <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=KnowledgeBase+Issue+Creator"
+           target="_blank" rel="noopener">點此建立新 Token ↗</a>
+      </p>
+
+      <div class="pat-input-wrap">
+        <input
+          id="pat-input"
+          type="password"
+          placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+      <p class="pat-note">⚠️ 請勿使用具有寫入程式碼權限的 Token，建議只勾選 public_repo。</p>
+      <p class="pat-error" id="pat-error"></p>
+
+      <div class="modal-actions">
+        <button id="pat-cancel-btn" class="btn btn-ghost">取消</button>
+        <button id="pat-submit-btn" class="btn btn-primary">建立 Issue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Scripts ─────────────────────────────────────────── -->
+  <script src="js/config.js"></script>
+  <script src="js/github-api.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
